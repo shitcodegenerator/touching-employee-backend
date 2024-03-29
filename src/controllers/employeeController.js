@@ -76,7 +76,10 @@ const clockin = async (req, res) => {
 
     // 查找用戶並更新其打卡資訊
     await Employee.findByIdAndUpdate(userId, {
-      $push: { clock_in: clockInData }
+      $push: { clock_in:{
+        $each: [clockInData],
+        $position: 0 
+      } }
     }, { new: true });
 
     res.status(200).json({ data: true, message: '打卡資訊已更新' });
@@ -139,7 +142,10 @@ const addWorkList = async (req, res) => {
     const updatedEmployee = await Employee.findByIdAndUpdate(
       userId,
       {
-        $push: { worklist: req.body }
+        $push: { worklist: {
+          $each: [req.body],
+          $position: 0
+        } }
       },
       { new: true } // 返回更新後的文檔
     );

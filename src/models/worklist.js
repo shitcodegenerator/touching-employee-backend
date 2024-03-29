@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const worklistSchema = new Schema({
   startTime: { type: Date, required: true },
   endTime: { type: Date, required: true },
-  contact: { type: Schema.Types.ObjectId, ref: 'Contact', default: ''  },
+  contact: { type: Schema.Types.ObjectId, ref: 'Contact'  },
   target: { type: String, default: '' },
   employee: { type: Schema.Types.ObjectId, ref: 'Employee' },
   content: {

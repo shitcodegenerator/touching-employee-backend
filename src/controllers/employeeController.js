@@ -40,8 +40,9 @@ const addEmployee = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  
-    const hasAccount = await Employee.findOne({ username: `${username}`.toUpperCase() })
+
+  const username = req.body.username.toUpperCase()
+    const hasAccount = await Employee.findOne({ username })
 
     if (!hasAccount) {
       return res.status(400).json({data: false, message: '無此會員帳號'})
@@ -53,7 +54,7 @@ const login = async (req, res) => {
     }
 
      const token = jwt.sign(
-      { username: `${username}`.toUpperCase(), userId: hasAccount._id },
+      { username, userId: hasAccount._id },
       process.env.AUTH_KEY,
       { expiresIn: "24h" }
     );

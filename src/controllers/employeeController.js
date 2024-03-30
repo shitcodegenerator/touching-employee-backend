@@ -5,7 +5,9 @@ const jwt = require('jsonwebtoken');
 const dayjs = require('dayjs')
 
 const addEmployee = async (req, res) => {
-  const { username, password, name } = req.body
+  let { username, password, name } = req.body
+
+  username = `${username}`.toUpperCase()
   try {
 
     const existingUser = await Employee.findOne({ username }).select('-password');
@@ -39,7 +41,7 @@ const addEmployee = async (req, res) => {
 
 const login = async (req, res) => {
   
-    const hasAccount = await Employee.findOne({ username: req.body.username })
+    const hasAccount = await Employee.findOne({ username: `${username}`.toUpperCase() })
 
     if (!hasAccount) {
       return res.status(400).json({data: false, message: '無此會員帳號'})
@@ -51,7 +53,7 @@ const login = async (req, res) => {
     }
 
      const token = jwt.sign(
-      { username: req.body.username, userId: hasAccount._id },
+      { username: `${username}`.toUpperCase(), userId: hasAccount._id },
       process.env.AUTH_KEY,
       { expiresIn: "24h" }
     );

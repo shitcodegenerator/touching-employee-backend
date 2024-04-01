@@ -19,8 +19,7 @@ const addEmployee = async (req, res) => {
     }
 
     const newUser = new Employee({
-      username,
-      name,
+      ...req.body,
       password: password ? await bcrypt.hash(password, 15) : ''
     });
 

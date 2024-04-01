@@ -67,12 +67,13 @@ const clockin = async (req, res) => {
   try {
     // 從JWT解析出的用戶ID
     const { userId } = req.userData;
-    const { start, end } = req.body;
+    const { start, end, location } = req.body;
      console.log( start, end)
     
     const clockInData = {
       start: start ?? '',
       end: end ?? '',
+      location
     };
     console.log(clockInData)
 

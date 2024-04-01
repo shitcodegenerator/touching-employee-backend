@@ -18,7 +18,6 @@ const employeeSchema = new Schema({
   password: { type: String, required: true },
   active: { type: String,  default: true },
   note: { type: String,  default: '' },
-  location: { type: String,  default: '' },
   workplace: { type: String,  default: '' },
   resign_at: { type: Date, default: '' },
   residence_of_registreation: { type: String, default: '' }, // 戶籍地
@@ -34,7 +33,10 @@ const employeeSchema = new Schema({
   resent_job: { type: String, default: '' }, // 近期工作
   clock_in: [{
     start: Date,
-    end: Date
+    end: Date,
+    location: {
+      type: String, default: ''
+    }
   }],
   contact: [{ type: Schema.Types.ObjectId, ref: 'Contact' }],
   worklist: [worklistSchema]

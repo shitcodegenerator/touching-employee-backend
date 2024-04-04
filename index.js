@@ -3,15 +3,9 @@ const bodyParser = require('body-parser');
 const connectDb = require('./src/config.js')
 const cors = require('cors');
 const dotEnv = require('dotenv').config()
-const passport = require('passport');
-
-const session = require('express-session');
-// const authRoutes = require('./src/routes/authRoutes.js'); 
-// const articleRoutes = require('./src/routes/employeeRoutes.js'); 
 const employeeRoutes = require('./src/routes/employeeRoutes.js'); 
 const contactRoutes = require('./src/routes/contactRoutes.js'); 
-// const authController = require('./src/controllers/authController.js')
-// const User = require("./src/models/user.js");
+const adminRoutes = require('./src/routes/adminRoutes.js'); 
 
 
 
@@ -57,9 +51,9 @@ connectDb()
 app.use(bodyParser.json());
 
 // Routes
-// app.use('/api/auth', authRoutes);
 app.use('/api', employeeRoutes);
 app.use('/api', contactRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hey this is my API running 🥳')

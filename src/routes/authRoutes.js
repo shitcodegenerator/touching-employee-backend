@@ -23,10 +23,4 @@ router.get('/google', passport.authenticate('google', {
   }));
 
 
-// Define the ADMIN registration route
-router.post('/register/admin', adminController.register);
-// Define the ADMIN login route
-router.post('/login/admin', adminController.login);
-
-
 module.exports = router;

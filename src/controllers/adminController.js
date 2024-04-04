@@ -1,117 +1,100 @@
+
+const Employee = require("../models/employee.js");
+const Admin = require("../models/admin.js");
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
-const Admin = require('../models/admin.js');
+const dayjs = require('dayjs')
 
+
+
+const getEmployeeList = async (req, res) => {
+  try {
+    // 通過jwt驗證後，req.user將包含解析出的用戶信息（userId）
+    const employees = await Employee.find();
+    res.status(200).json({data: employees});
+  } catch (error) {
+    console.log(error)
+    res.status(500).send('伺服器錯誤');
+  }
+}
 
 const register = async (req, res) => {
-  const { username, password } = req.body;
-
-  // Simple validation
-  if (!username || !password) {
-    return res.status(400).json({ error: 'All fields are required' });
-  }
-
+  let {username, password, ...otherData} = req.body
   try {
-    // Check if the username is already taken
-    const existingUser = await Admin.findOne({ username });
+
+    username = `${username}`.toUpperCase()
+    const existingUser = await Admin.findOne({ username }).select('-password');
+
     if (existingUser) {
-      return res.status(400).json({ error: 'Username is already taken' });
+      return res
+        .status(400)
+        .json({ data: false, message: "會員帳號已有人使用" });
     }
 
-    // Hash the password before saving it
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create a new user object with the hashed password
     const newUser = new Admin({
       username,
-      password: hashedPassword
+      password: password ? await bcrypt.hash(password, 15) : '',
+      ...otherData
     });
 
-    // Save the user to MongoDB
     await newUser.save();
 
-    // Respond with the registered user
-    res.status(201).json(newUser);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    const token = jwt.sign(
+      { username, userId: newUser._id },
+      process.env.ADMIN_KEY,
+      { expiresIn: "48h" }
+    );
+
+    return res.status(200).json({ data: newUser, token });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ data: err.response.data.error_description });
   }
 };
 
 const login = async (req, res) => {
-  const { username, password } = req.body;
 
-  // Simple validation
-  if (!username || !password) {
-    return res.status(400).json({ error: 'Username and password are required' });
-  }
+  const username = req.body.username.toUpperCase()
+  const hasAccount = await Admin.findOne({ username })
 
-  try {
-    // Find the user by username
-    const user = await Admin.findOne({ username });
-
-    // Check if the user exists
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+    if (!hasAccount) {
+      return res.status(400).json({data: false, message: '無此會員帳號'})
     }
 
-    // Compare the provided password with the hashed password in the database
-    const passwordMatch = await bcrypt.compare(password, user.password);
-
-    if (passwordMatch) {
-      // Passwords match, generate JWT token
-      const token = jwt.sign({ username: user.username, userId: user._id }, process.env.ADMIN_KEY, { expiresIn: '1h' });
-
-      // Return the token along with a success message and user information
-      res.status(200).json({
-        message: 'Login successful',
-        token,
-        expiresIn: 3600, // Token expiration time in seconds (1 hour in this example)
-        user: {
-          username: user.username,
-          email: user.email,
-        },
-      });
-    } else {
-      // Passwords do not match
-      res.status(401).json({ error: 'Invalid username or password' });
+    const isPasswordValid = await bcrypt.compare(req.body.password, hasAccount.password)
+    if (!isPasswordValid) {
+      return res.status(400).json({data: false, message: '密碼錯誤，請再試一次'})
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+
+     const token = jwt.sign(
+      { username, userId: hasAccount._id },
+      process.env.ADMIN_KEY,
+      { expiresIn: "48h" }
+    );
+    return res
+      .status(200)
+      .json({ data: hasAccount, message: "登入成功", token });
+  
 };
 
-// const getUserData = async (req, res) => {
-//   try {
-//     // Use the decoded user data from the middleware
-//     const { userId } = req.userData;
-
-//     // Find the user by ID and exclude the password field
-//     const user = await Admin.findById(userId, { password: 0 });
-
-//     if (!user) {
-//       return res.status(404).json({ error: 'Admin not found' });
-//     }
-
-//     // Return user data
-//     res.status(200).json({
-//       userId: user._id,
-//       username: user.username,
-//       name: user.name,
-//       gender: user.gender,
-//       email: user.email,
-//       mobile: user.mobile,
-//       age: user.age,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// };
+const me = async (req, res) => {
+  try {
+    const { userId } = req.userData;
+    // 通過jwt驗證後，req.user將包含解析出的用戶信息（userId）
+    const user = await Admin.findById(userId).select('-password'); // 排除密碼字段
+    if (!user) {
+      return res.status(404).send('找不到用戶');
+    }
+    res.status(200).json({data: user});
+  } catch (error) {
+    console.log(error)
+    res.status(500).send('伺服器錯誤');
+  }
+}
 
 module.exports = {
-  register,
+  getEmployeeList,
   login,
-  // getUserData,
+  register,
+  me
 };

@@ -135,53 +135,7 @@ const lineLoginHandler = async(reqBody, res) => {
   }
 }
 
-const ggg = async(data, done) => {
 
-  // axios.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded"
-  try {
-
-
-    const existingUser = await User.findOne({ google_id: data.id }).select('-password');
-
-    // 已經有會員：登入
-    if (existingUser) {
-      const token = jwt.sign(
-        { username: existingUser.email, userId: existingUser._id },
-        process.env.AUTH_KEY,
-        { expiresIn: "1h" }
-      );
-      
-      
-      return done(null,{ data: existingUser, message: "登入成功", token })
-    }
-
-
-
-    // 找不到會員？註冊
-    const newUser = new User({
-      google_id: data.id,
-      name: data.displayName,
-      email: data._json.email,
-      username: data._json.email,
-      avatar: data._json.picture
-    });
-
-   
-
-    await newUser.save();
-
-    const token = jwt.sign(
-      { username: udata._json.email, userId: data.id },
-      process.env.AUTH_KEY,
-      { expiresIn: "1h" }
-    );
-
-    return done(null,{ data: false, message: "註冊成功", token  })
-  } catch(err) {
-    console.log(err)
-    return done(null, {error: true, data: false, message: '註冊失敗，請再試一次。'})
-  }
-}
 
 const googleLoginHandler = async(code, res) => {
 
@@ -448,5 +402,4 @@ module.exports = {
   sendEmail,
   resetPassword,
   editUserData,
-  ggg
 };

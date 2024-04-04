@@ -4,7 +4,7 @@ const adminController = require('../controllers/adminController');
 const authenticateAdmin = require('../middleware/authenticateAdmin'); // Create a middleware for authentication
 
 // Define the registration route
-router.get('/employee', authenticateAdmin,  adminController.getEmployeeList);
+router.get('/employee', adminController.getEmployeeList);
 
 // Define the ADMIN registration route
 router.post('/register', adminController.register);

@@ -68,7 +68,7 @@ const login = async (req, res) => {
 
      const token = jwt.sign(
       { username, userId: hasAccount._id },
-      process.env.ADMIN_KEY,
+      'TOUCHING_DEVELOPMENT_ADMIN_SYSTEM_178',
       { expiresIn: "48h" }
     );
     return res

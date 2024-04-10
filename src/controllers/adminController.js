@@ -5,13 +5,50 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
 const dayjs = require('dayjs')
 
+const Contact = require("../models/contact.js");
 
 
 const getEmployeeList = async (req, res) => {
   try {
     // 通過jwt驗證後，req.user將包含解析出的用戶信息（userId）
-    const employees = await Employee.find();
+    const employees = await Employee.find().select('-clock_in -worklist -contact -password');
     res.status(200).json({data: employees});
+  } catch (error) {
+    console.log(error)
+    res.status(500).send('伺服器錯誤');
+  }
+}
+
+const getContact = async (req, res) => {
+  try {
+    // 通過jwt驗證後，req.user將包含解析出的用戶信息（userId）
+    const contacts = await Contact.find().populate({
+      path: 'employee',
+      select: '_id name'
+    });
+    res.status(200).json({data: contacts});
+  } catch (error) {
+    console.log(error)
+    res.status(500).send('伺服器錯誤');
+  }
+}
+
+
+const getClockinList = async (req, res) => {
+  try {
+    // 通過jwt驗證後，req.user將包含解析出的用戶信息（userId）
+    const worklist = await Employee.findById(req.params.id).select('clock_in');
+    res.status(200).json({data: worklist});
+  } catch (error) {
+    console.log(error)
+    res.status(500).send('伺服器錯誤');
+  }
+}
+const getWorkList = async (req, res) => {
+  try {
+    // 通過jwt驗證後，req.user將包含解析出的用戶信息（userId）
+    const worklist = await Employee.findById(req.params.id).select('worklist');
+    res.status(200).json({data: worklist});
   } catch (error) {
     console.log(error)
     res.status(500).send('伺服器錯誤');
@@ -96,5 +133,8 @@ module.exports = {
   getEmployeeList,
   login,
   register,
-  me
+  me,
+  getClockinList,
+  getWorkList,
+  getContact
 };

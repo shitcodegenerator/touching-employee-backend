@@ -6,7 +6,6 @@ const authenticateAdmin = (req, res, next) => {
     const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : '';
     // Verify the token
     const decodedToken = jwt.verify(token, 'TOUCHING_DEVELOPMENT_ADMIN_SYSTEM_178');
-
     // Attach the decoded token to the request for further use
     req.userData = { userId: decodedToken.userId, username: decodedToken.username };
     // Continue to the next middleware or route handler

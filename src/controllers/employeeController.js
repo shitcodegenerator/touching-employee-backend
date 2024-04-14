@@ -68,20 +68,44 @@ const clockin = async (req, res) => {
     // 從JWT解析出的用戶ID
     const { userId } = req.userData;
     const { start, end, location } = req.body;
-     console.log( start, end)
+
     
     const clockInData = {
       start: start ?? '',
       end: end ?? '',
       location
     };
-    console.log(clockInData)
 
     // 查找用戶並更新其打卡資訊
     await Employee.findByIdAndUpdate(userId, {
       $push: { clock_in:{
         $each: [clockInData],
         $position: 0 
+      } }
+    }, { new: true });
+
+    res.status(200).json({ data: true, message: '打卡資訊已更新' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('伺服器錯誤');
+  }
+}
+
+const clockinPatch = async (req, res) => {
+  try {
+    const { start, end, location } = req.body;
+    
+    const clockInData = {
+      start: start ?? '',
+      end: end ?? '',
+      location
+    };
+
+
+    // 查找用戶並更新其打卡資訊
+    await Employee.findByIdAndUpdate('660988ea63c383de092969ef', {
+      $push: { clock_in:{
+        $each: [req.body]
       } }
     }, { new: true });
 
@@ -164,6 +188,78 @@ const addWorkList = async (req, res) => {
   }
 }
 
+const getClockinHours = async (req, res) => {
+  try {
+    const { userId } = req.userData;
+
+    const { clock_in } = await Employee.findById(userId).select('clock_in');
+
+    const workHours = calculateWorkHours(clock_in)
+    const totalHours = totalWorkHours(workHours) / 60;
+    // const timeTitle = computed(() => {
+    //     // 然后，将分钟转换为小时
+    
+    // // 最后，使用toFixed(2)保留两位小数并转换为数字类型
+    //   return `總工作時數 ${parseFloat(totalHours.toFixed(2))} 小時（${totalWorkHours(workHours.value)} 分鐘）`
+    // })
+  
+    res.status(200).json({
+      list: calculateWorkHours(clock_in),
+      totalMins: totalWorkHours(workHours),
+      totalHours
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('伺服器錯誤');
+  }
+}
+
+const calculateWorkHours = (clockinData) => {
+  // 按日期分组打卡记录
+  const groupedByDate = clockinData.reduce((acc, record) => {
+    const dateKey = record.start ? dayjs(record.start).format('YYYY-MM-DD') : dayjs(record.end).format('YYYY-MM-DD');
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(record);
+    return acc;
+  }, {});
+
+  const workHoursByDay = {};
+
+  // 计算每天的工作时间
+  Object.keys(groupedByDate).forEach(date => {
+    let dailyTotalMinutes = 0;
+
+    // 针对每天的记录进行排序和计算
+    const dailyRecords = groupedByDate[date].sort((a, b) => {
+      const aTime = a.start ? dayjs(a.start) : dayjs(a.end);
+      const bTime = b.start ? dayjs(b.start) : dayjs(b.end);
+      return aTime.diff(bTime);
+    });
+
+    let lastStart = null;
+    dailyRecords.forEach(record => {
+      if (record.start && !lastStart) {
+        lastStart = dayjs(record.start);
+      } else if (record.end && lastStart) {
+        const end = dayjs(record.end);
+        const durationMinutes = end.diff(lastStart, 'minute');
+        dailyTotalMinutes += Math.ceil(durationMinutes);
+        lastStart = null; // 重置lastStart以准备下一次计算
+      }
+    });
+
+    workHoursByDay[date] = dailyTotalMinutes;
+  });
+
+  return workHoursByDay;
+}
+
+function totalWorkHours(workHoursByDay) {
+  return Object.values(workHoursByDay).reduce((total, dailyHours) => total + dailyHours, 0);
+}
+
 const getWorkList = async (req, res) => {
   try {
     const { userId } = req.userData;
@@ -206,5 +302,7 @@ module.exports = {
   getUserData,
   getClockinList,
   addWorkList,
-  getWorkList
+  getWorkList,
+  clockinPatch,
+  getClockinHours
 };

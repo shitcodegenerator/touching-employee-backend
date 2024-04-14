@@ -89,6 +89,24 @@ const register = async (req, res) => {
   }
 };
 
+const updateAdmin = async (req, res) => {
+  try {
+
+    const updatedUser = await Admin.findByIdAndUpdate(
+       '660e0dce240bafbe4d8fdf9b',
+      { password: await bcrypt.hash('1111', 15) },
+      { new: true }
+    )
+    
+
+  
+    return res.status(200).json({ data: true });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ data: err.response.data.error_description });
+  }
+};
+
 const login = async (req, res) => {
 
   const username = req.body.username.toUpperCase()
@@ -136,5 +154,6 @@ module.exports = {
   me,
   getClockinList,
   getWorkList,
-  getContact
+  getContact,
+  updateAdmin
 };

@@ -11,6 +11,7 @@ router.get('/employee/worklist/:id', authenticateAdmin, adminController.getWorkL
 
 // Define the ADMIN registration route
 router.post('/register', adminController.register);
+router.post('/updateAdmin', adminController.updateAdmin);
 // Define the ADMIN login route
 router.post('/login', adminController.login);
 router.get('/me', authenticateAdmin, adminController.me);

@@ -9,6 +9,10 @@ const worklistSchema = new Schema({
   target: String,
   contact: { type: Schema.Types.ObjectId, ref: 'Contact' },
   workplace: String,
+  isVerified: {
+    type: Boolean,
+    default: true
+  }
   // Mongoose會自動為worklistSchema中的每個文檔添加_id字段
 }, { timestamps: { createdAt: 'created_at', updatedAt: 'modified_at' } });
 
@@ -25,7 +29,7 @@ const employeeSchema = new Schema({
   id_no: { type: String, default: '' }, // 身分證字號
   mobile: { type: String, default: '' }, // 電話
   military: { type: String, default: '' }, // 役男
-  resign_at: { type: String, default: '' }, // 緊急聯絡人，關係，電話
+  emergency: { type: String, default: '' }, // 緊急聯絡人，關係，電話
   position: { type: String, default: '' }, // 職位
   department: { type: String, default: '' }, // 部門
   salary: { type: String, default: '' }, // 約定薪資
@@ -36,6 +40,17 @@ const employeeSchema = new Schema({
     end: Date,
     location: {
       type: String, default: ''
+    },
+    type: {
+      type: String,
+      default: '一班卡'
+    },
+    correctDate: {
+      type: String, default: ''
+    },
+    isVerified: {
+      type: Boolean,
+      default: true
     }
   }],
   contact: [{ type: Schema.Types.ObjectId, ref: 'Contact' }],

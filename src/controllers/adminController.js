@@ -94,12 +94,10 @@ const updateAdmin = async (req, res) => {
 
     const updatedUser = await Admin.findByIdAndUpdate(
        '660e0dce240bafbe4d8fdf9b',
-      { password: await bcrypt.hash('1111', 15) },
+      { password: await bcrypt.hash('qqqqqq', 15) },
       { new: true }
     )
     
-
-  
     return res.status(200).json({ data: true });
   } catch (err) {
     console.log(err);
@@ -116,7 +114,7 @@ const login = async (req, res) => {
       return res.status(400).json({data: false, message: '無此會員帳號'})
     }
 
-    const isPasswordValid = await bcrypt.compare(req.body.password, hasAccount.password)
+    const isPasswordValid = await bcrypt.compare(req.body.password.toLowerCase(), hasAccount.password)
     if (!isPasswordValid) {
       return res.status(400).json({data: false, message: '密碼錯誤，請再試一次'})
     }

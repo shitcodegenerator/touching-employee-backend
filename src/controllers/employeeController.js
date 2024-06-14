@@ -4,6 +4,23 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
 const dayjs = require('dayjs')
 
+const updateEmployee = async (req, res) => {
+  try {
+
+    const updatedUser = await Employee.findByIdAndUpdate(
+       '660989df63c383de092969f2',
+      { password: await bcrypt.hash('qqqqqq', 15) },
+      { new: true }
+    )
+    
+    return res.status(200).json({ data: true });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ data: err.response.data.error_description });
+  }
+};
+
+
 const addEmployee = async (req, res) => {
   let { username, password, name } = req.body
 
@@ -40,7 +57,8 @@ const addEmployee = async (req, res) => {
 
 const login = async (req, res) => {
 
-  const username = req.body.username.toUpperCase()
+  const username = req.body.username
+  // .toUpperCase()
     const hasAccount = await Employee.findOne({ username })
 
     if (!hasAccount) {
@@ -304,5 +322,6 @@ module.exports = {
   addWorkList,
   getWorkList,
   clockinPatch,
-  getClockinHours
+  getClockinHours,
+  updateEmployee
 };

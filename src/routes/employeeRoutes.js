@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const employeeController = require('../controllers/employeeController');
+const leaveController = require('../controllers/leaveController');
 const authenticate = require('../middleware/authenticate'); // Create a middleware for authentication
 
 // Define the registration route
@@ -13,5 +14,6 @@ router.post('/clockin/patch',  employeeController.clockinPatch);
 router.get('/work', authenticate,  employeeController.getWorkList);
 router.get('/clockin/hours', authenticate,  employeeController.getClockinHours);
 router.post('/work', authenticate,  employeeController.addWorkList);
+router.post('/leave', authenticate,  leaveController.applyLeave);
 
 module.exports = router;

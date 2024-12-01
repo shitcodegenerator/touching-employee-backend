@@ -3,6 +3,7 @@ const Employee = require("../models/employee.js");
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
 const dayjs = require('dayjs')
+const { OriginalLeaves, LeaveType} = require('../enums/leave.js')
 
 const updateEmployee = async (req, res) => {
   try {
@@ -35,9 +36,19 @@ const addEmployee = async (req, res) => {
         .json({ data: false, message: "會員帳號已有人使用" });
     }
 
+      // 初始化假期餘額，每個員工的假期數據是獨立的
+      const leaveBalance = Object.keys(OriginalLeaves).map(leaveType => ({
+        type: leaveType,
+        total_days: OriginalLeaves[leaveType],
+        used_days: 0,
+        used_hours: 0,
+      }));
+
     const newUser = new Employee({
       ...req.body,
-      password: password ? await bcrypt.hash(password, 15) : ''
+      password: password ? await bcrypt.hash(password, 15) : '',
+      leave_balance: leaveBalance,
+      leaves_taken: []
     });
 
     await newUser.save();
@@ -58,8 +69,7 @@ const addEmployee = async (req, res) => {
 const login = async (req, res) => {
 
   const username = req.body.username
-  // .toUpperCase()
-    const hasAccount = await Employee.findOne({ username })
+    const hasAccount = await Employee.findOne({ username }).collation({ locale: 'en', strength: 2 }) // 指定英文和忽略大小写的比较
 
     if (!hasAccount) {
       return res.status(400).json({data: false, message: '無此會員帳號'})

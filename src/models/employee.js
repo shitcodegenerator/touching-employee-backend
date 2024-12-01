@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const { OriginalLeaves } = require('../enums/leave');
+const leaveBalanceSchema = require('./leaveBalanceSchema')
 const Schema = mongoose.Schema;
 
 const worklistSchema = new Schema({
@@ -54,6 +56,12 @@ const employeeSchema = new Schema({
     }
   }],
   contact: [{ type: Schema.Types.ObjectId, ref: 'Contact' }],
+  leaves_taken: [{ type: Schema.Types.ObjectId, ref: 'Leave' }],
+  leave_balance: [leaveBalanceSchema],  // 每個員工獨立的假期餘額
+  leaves_taken: [{          // 請假記錄的引用
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Leave'
+  }],
   worklist: [worklistSchema]
 }, { timestamps: { createdAt: 'created_at', updatedAt: 'modified_at' } });
 

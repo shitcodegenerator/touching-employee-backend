@@ -121,8 +121,7 @@ const login = async (req, res) => {
 
      const token = jwt.sign(
       { username, userId: hasAccount._id },
-      'TOUCHING_DEVELOPMENT_ADMIN_SYSTEM_178',
-      { expiresIn: "48h" }
+      'TOUCHING_DEVELOPMENT_ADMIN_SYSTEM_178'
     );
     return res
       .status(200)

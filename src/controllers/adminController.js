@@ -36,28 +36,41 @@ const getContact = async (req, res) => {
 
 const getClockinList = async (req, res) => {
   try {
-    // 取得年份和月份的查詢參數
     const { year, month } = req.query;
 
-    // 構建日期篩選條件
-    let dateFilter = {};
-    if (year && month) {
-      // 使用 Day.js 生成月份範圍
-      const startDate = dayjs(`${year}-${month}-01`).startOf('month').toDate();
-      const endDate = dayjs(`${year}-${month}-01`).endOf('month').add(1, 'day').startOf('day').toDate();
-
-      // 設置 MongoDB 篩選條件
-      dateFilter = {
-        'clock_in.start': { $gte: startDate, $lt: endDate },
-      };
+    if (!year || !month) {
+      return res.status(400).json({ error: 'Year and month are required' });
     }
 
-    // 查詢數據，應用日期篩選條件
-    const worklist = await Employee.findById(req.params.id)
-      .select('clock_in')
-      .where(dateFilter);
+    // 使用 Day.js 生成時間範圍
+    const startDate = dayjs(`${year}-${month}-01`).startOf('month').toDate();
+    const endDate = dayjs(startDate).add(1, 'month').startOf('month').toDate();
 
-    res.status(200).json({ data: worklist });
+    // 添加篩選條件：start 或 end 符合條件
+    const dateFilter = {
+      $or: [
+        { "clock_in.start": { $gte: startDate, $lt: endDate } },
+        { "clock_in.end": { $gte: startDate, $lt: endDate } },
+      ],
+    };
+
+    // 查詢數據
+    const employee = await Employee.findById(req.params.id)
+      .select('clock_in')
+      .lean(); // 使用 .lean() 讓返回的數據是普通 JavaScript 對象
+
+    // 過濾符合條件的 clock_in
+    const filteredClockIn = employee.clock_in.filter(item => {
+      const start = item.start ? new Date(item.start) : null;
+      const end = item.end ? new Date(item.end) : null;
+
+      return (
+        (start && start >= startDate && start < endDate) || // start 符合條件
+        (end && end >= startDate && end < endDate)          // 或 end 符合條件
+      );
+    });
+
+    res.status(200).json({ data: filteredClockIn });
   } catch (error) {
     console.error(error);
     res.status(500).send('伺服器錯誤');

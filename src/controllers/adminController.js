@@ -36,14 +36,34 @@ const getContact = async (req, res) => {
 
 const getClockinList = async (req, res) => {
   try {
-    // 通過jwt驗證後，req.user將包含解析出的用戶信息（userId）
-    const worklist = await Employee.findById(req.params.id).select('clock_in');
-    res.status(200).json({data: worklist});
+    // 取得年份和月份的查詢參數
+    const { year, month } = req.query;
+
+    // 構建日期篩選條件
+    let dateFilter = {};
+    if (year && month) {
+      // 使用 Day.js 生成月份範圍
+      const startDate = dayjs(`${year}-${month}-01`).startOf('month').toDate();
+      const endDate = dayjs(`${year}-${month}-01`).endOf('month').add(1, 'day').startOf('day').toDate();
+
+      // 設置 MongoDB 篩選條件
+      dateFilter = {
+        'clock_in.start': { $gte: startDate, $lt: endDate },
+      };
+    }
+
+    // 查詢數據，應用日期篩選條件
+    const worklist = await Employee.findById(req.params.id)
+      .select('clock_in')
+      .where(dateFilter);
+
+    res.status(200).json({ data: worklist });
   } catch (error) {
-    console.log(error)
+    console.error(error);
     res.status(500).send('伺服器錯誤');
   }
-}
+};
+
 const getWorkList = async (req, res) => {
   try {
     // 通過jwt驗證後，req.user將包含解析出的用戶信息（userId）
@@ -56,6 +76,7 @@ const getWorkList = async (req, res) => {
 }
 
 const register = async (req, res) => {
+  console.log(req.body)
   let {username, password, ...otherData} = req.body
   try {
 
@@ -78,8 +99,7 @@ const register = async (req, res) => {
 
     const token = jwt.sign(
       { username, userId: newUser._id },
-      process.env.ADMIN_KEY,
-      { expiresIn: "48h" }
+      process.env.ADMIN_KEY
     );
 
     return res.status(200).json({ data: newUser, token });
